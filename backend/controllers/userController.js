@@ -27,15 +27,18 @@ const registerUser = asyncHandler(async (req, res) =>{
     const user = await User.create({
         name: name, 
         email: email, 
-        password: hashedPwd
+        key: hashedPwd,
     })
+
 
     if(user){
         res.status(201).json({
             _id: user._id,
             name: user.name,
-            email: user.email
+            email: user.email,
+            password: user.password
         })
+        console.log(user.password)
     }else{
         res.status(400)
         throw new error ('Inval User Data');
@@ -45,7 +48,21 @@ const registerUser = asyncHandler(async (req, res) =>{
 
 
 const loginUser = asyncHandler(async (req, res) =>{
-    res.send('login Route')
+    const {email, password} = req.body
+
+    const user = await User.findOne({email})
+    //check pass
+    console.log(user)
+    if(user && (await bcrypt.compare(password, user.password))){
+        res.status(200).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email
+        })
+    }else{
+        res.status(401)
+        throw new Error ('invalid credentials')
+    }
 })
 
 module.exports = {registerUser, loginUser}
